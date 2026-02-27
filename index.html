@@ -311,19 +311,8 @@
 </div>
 
 <script>
-// ══════════════════════════════════════════════════════
-//  KONFIGURACJA – wklej URL swoich Flow poniżej
-// ══════════════════════════════════════════════════════
-
-// Flow GET – pobiera dane kandydata z SharePoint po itemId
-// Trigger: HTTP request → Pobierz element SP → Response z JSON
 const GET_URL = "https://defaulta4f7df2f758045869110563ac360d2.69.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/74727b0ba96d489588692a2ce39f8a5b/triggers/manual/paths/invoke?api-version=1";
-
-// Flow POST – zapisuje ocenę HR do SharePoint
-// Trigger: HTTP request → Aktualizuj element SP → Response 200
 const POST_URL = "https://defaulta4f7df2f758045869110563ac360d2.69.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/1e57689babeb403da00204d283c6d7a8/triggers/manual/paths/invoke?api-version=1";
-
-// ══════════════════════════════════════════════════════
 
 const ratingLabels = ["","Słaby","Poniżej oczekiwań","Przeciętny","Dobry","Doskonały"];
 
@@ -332,25 +321,18 @@ window.addEventListener('DOMContentLoaded', async () => {
   const itemId = p.get('itemId') || p.get('id');
   const refId  = p.get('ref') || '';
 
-  if (!itemId) {
-    showDemo();
-    return;
-  }
+  if (!itemId) { showDemo(); return; }
 
   document.getElementById('h_itemId').value = itemId;
   document.getElementById('h_refId').value  = refId;
   document.getElementById('loadingDetail').textContent = `Ładowanie rekordu ID: ${itemId}`;
 
-  // Tryb demo jeśli Flow GET nie jest skonfigurowany
-  if (GET_URL === 'WKLEJ_URL_FLOW_GET') {
-    showDemoWithId(itemId, refId);
-    return;
-  }
-
   try {
-    const resp = await fetch(`${GET_URL}&itemId=${encodeURIComponent(itemId)}`, {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' }
+    // POPRAWKA: GET_URL wywołujemy metodą POST z itemId w body
+    const resp = await fetch(GET_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ itemId: itemId })
     });
     if (!resp.ok) throw new Error(`Flow GET zwrócił HTTP ${resp.status}`);
     const data = await resp.json();
@@ -367,7 +349,6 @@ window.addEventListener('DOMContentLoaded', async () => {
 });
 
 function renderCandidate(d, itemId, refId) {
-  // Obsługuje dane zarówno z Flow (nazwy z ankiety) jak i bezpośrednio z SP
   const g = (...keys) => {
     for (const k of keys) {
       const v = d[k];
@@ -422,21 +403,6 @@ function showDemo() {
     `<code>?itemId=X&ref=HT-CE-...</code>`;
 }
 
-function showDemoWithId(itemId, refId) {
-  renderCandidate({
-    full_name: 'Tryb DEMO – skonfiguruj Flow GET',
-    nationality: 'Ukraińska', email: 'demo@example.com',
-    phone_pl: '+48 600 000 000', experience: '12m+',
-    trailers: 'silos, plandeka', license_type: 'pl',
-    languages: 'pl, uk', residence_doc: 'karta_pobytu',
-    submittedAt: new Date().toISOString()
-  }, itemId, refId);
-  document.getElementById('loadingScreen').classList.add('hidden');
-  document.getElementById('formWrapper').style.display = 'block';
-  showToast('warn','⚠️','Tryb DEMO',`itemId=${itemId} · Skonfiguruj GET_URL w kodzie`);
-}
-
-// SUBMIT
 document.getElementById('hrForm').addEventListener('submit', async function(e) {
   e.preventDefault();
 
@@ -490,18 +456,14 @@ document.getElementById('hrForm').addEventListener('submit', async function(e) {
 
     setStep('s','running','Zapisywanie oceny...');
 
-    if (POST_URL === 'WKLEJ_URL_FLOW_POST') {
-      await sleep(800);
-      setStep('s','done','(DEMO) Symulacja zapisu ✓');
-    } else {
-      const resp = await fetch(POST_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      if (!resp.ok) throw new Error(`Flow POST zwrócił HTTP ${resp.status}`);
-      setStep('s','done','Zapisano w SharePoint ✓');
-    }
+    // POPRAWKA: POST_URL wysyła pełny payload
+    const resp = await fetch(POST_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (!resp.ok) throw new Error(`Flow POST zwrócił HTTP ${resp.status}`);
+    setStep('s','done','Zapisano w SharePoint ✓');
 
     setTimeout(() => {
       document.getElementById('formWrapper').style.display = 'none';
@@ -564,3 +526,4 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 </script>
 </body>
 </html>
+
