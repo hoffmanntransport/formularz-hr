@@ -120,6 +120,8 @@
   .field-error{color:var(--error);font-size:11px;margin-top:5px;display:none}
   .field-group.has-error input,.field-group.has-error select{border-color:var(--error)}
   .field-group.has-error .field-error{display:block}
+  .info-note{background:rgba(212,160,23,.08);border:1px solid rgba(212,160,23,.25);border-radius:6px;padding:10px 14px;font-size:12px;color:var(--text-muted);margin-bottom:20px}
+  .info-note strong{color:var(--primary)}
 </style>
 </head>
 <body>
@@ -153,6 +155,10 @@
     <div class="page-title">Ocena Kandydata <span>HR</span></div>
     <div class="page-sub">Formularz wewnętrzny · Tylko do użytku działu HR</div>
 
+    <div class="info-note">
+      ℹ️ <strong>Zapis częściowy:</strong> Formularz można zapisać na każdym etapie rekrutacji. Jedynym wymaganym polem jest <strong>Status rekrutacji</strong>. Pozostałe pola można uzupełnić później.
+    </div>
+
     <div class="candidate-card">
       <div class="card-header">
         <div>
@@ -169,6 +175,7 @@
       <input type="hidden" id="h_refId"  name="referenceId">
       <input type="hidden" id="h_name"   name="candidateName">
 
+      <!-- 01 Status -->
       <div class="section">
         <div class="section-header"><span class="section-num">01</span><span class="section-label">Status Rekrutacji</span></div>
         <div class="section-body">
@@ -182,19 +189,19 @@
               <label class="option-item" onclick="pickRadio(this)"><input type="radio" name="status_rekrutacji" value="Oczekuje na dokumenty"><span class="radio-box"></span><span class="option-label">📋 Oczekuje na dokumenty</span></label>
               <label class="option-item" onclick="pickRadio(this)"><input type="radio" name="status_rekrutacji" value="Wstrzymany"><span class="radio-box"></span><span class="option-label">⏸️ Wstrzymany</span></label>
             </div>
-            <div class="field-error">Wybierz status</div>
+            <div class="field-error">Wybierz status rekrutacji</div>
           </div>
         </div>
       </div>
 
+      <!-- 02 Rozmowa -->
       <div class="section">
         <div class="section-header"><span class="section-num">02</span><span class="section-label">Rozmowa Kwalifikacyjna</span></div>
         <div class="section-body">
           <div class="field-row col-2">
-            <div class="field-group" id="fg_interview_date">
-              <label class="field-label">Data rozmowy <span class="req">*</span></label>
+            <div class="field-group">
+              <label class="field-label">Data rozmowy</label>
               <input type="date" name="data_rozmowy" id="interviewDate">
-              <div class="field-error">Podaj datę</div>
             </div>
             <div class="field-group">
               <label class="field-label">Forma rozmowy</label>
@@ -234,6 +241,7 @@
         </div>
       </div>
 
+      <!-- 03 Uwagi -->
       <div class="section">
         <div class="section-header"><span class="section-num">03</span><span class="section-label">Uwagi HR</span></div>
         <div class="section-body">
@@ -252,15 +260,15 @@
         </div>
       </div>
 
+      <!-- 04 Decyzja -->
       <div class="section">
         <div class="section-header"><span class="section-num">04</span><span class="section-label">Decyzja Końcowa</span></div>
         <div class="section-body">
-          <label class="field-label">Decyzja HR <span class="req">*</span></label>
+          <label class="field-label">Decyzja HR <span style="color:var(--text-muted);font-size:10px;font-weight:400;text-transform:none;letter-spacing:0">(opcjonalna – można uzupełnić później)</span></label>
           <div class="decision-grid">
             <label class="decision-btn accept" onclick="pickDecision(this,'Przyjęty')"><input type="radio" name="decyzja" value="Przyjęty"><span>✅</span> Przyjęty</label>
             <label class="decision-btn reject" onclick="pickDecision(this,'Odrzucony')"><input type="radio" name="decyzja" value="Odrzucony"><span>❌</span> Odrzucony</label>
           </div>
-          <div class="field-error" id="decyzja_error" style="margin-top:8px">Wybierz decyzję</div>
           <div id="rejectReasonBlock" style="display:none;margin-top:14px">
             <label class="field-label">Powód odrzucenia</label>
             <select name="powod_odrzucenia">
@@ -291,7 +299,7 @@
       <div class="upload-progress" id="uploadProgress">
         <div class="upload-progress-title">⚙️ Zapisywanie...</div>
         <div class="upload-step"><span class="step-icon" id="icon_v">1</span><span class="step-label" id="label_v">Weryfikacja danych</span></div>
-        <div class="upload-step"><span class="step-icon" id="icon_g">2</span><span class="step-label" id="label_g">Pobieranie danych kandydata</span></div>
+        <div class="upload-step"><span class="step-icon" id="icon_g">2</span><span class="step-label" id="label_g">Łączenie z SharePoint</span></div>
         <div class="upload-step"><span class="step-icon" id="icon_s">3</span><span class="step-label" id="label_s">Zapisywanie oceny w SharePoint</span></div>
       </div>
     </form>
@@ -302,6 +310,9 @@
     <div class="success-title">Zapisano!</div>
     <p class="success-text">Ocena kandydata została zaktualizowana w SharePoint.</p>
     <p style="color:var(--text-muted);font-size:13px;margin-top:16px" id="successDetail"></p>
+    <div style="margin-top:24px">
+      <button onclick="location.reload()" style="background:var(--primary);color:#000;border:none;padding:10px 28px;border-radius:6px;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;letter-spacing:1px">🔄 Edytuj ponownie</button>
+    </div>
   </div>
 </main>
 
@@ -311,7 +322,7 @@
 </div>
 
 <script>
-const GET_URL = "https://defaulta4f7df2f758045869110563ac360d2.69.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/74727b0ba96d489588692a2ce39f8a5b/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=ktczVOK7vkmehkmVz9ffigg-JowQgPdVGIIfRZFHofY";
+const GET_URL  = "https://defaulta4f7df2f758045869110563ac360d2.69.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/74727b0ba96d489588692a2ce39f8a5b/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=ktczVOK7vkmehkmVz9ffigg-JowQgPdVGIIfRZFHofY";
 const POST_URL = "https://defaulta4f7df2f758045869110563ac360d2.69.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/1e57689babeb403da00204d283c6d7a8/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=WGql0ZCAy4jozQWOyjHf0ZSMWIJHtTK666n90e_wVPk";
 
 const ratingLabels = ["","Słaby","Poniżej oczekiwań","Przeciętny","Dobry","Doskonały"];
@@ -321,18 +332,17 @@ window.addEventListener('DOMContentLoaded', async () => {
   const itemId = p.get('itemId') || p.get('id');
   const refId  = p.get('ref') || '';
 
-  if (!itemId) { showDemo(); return; }
+  if (!itemId) { showError('Brak parametru <code>itemId</code> w URL.<br><br>Otwórz formularz przez link z emaila HR który zawiera<br><code>?itemId=X&ref=HT-CE-...</code>'); return; }
 
   document.getElementById('h_itemId').value = itemId;
   document.getElementById('h_refId').value  = refId;
   document.getElementById('loadingDetail').textContent = `Ładowanie rekordu ID: ${itemId}`;
 
   try {
-    // POPRAWKA: GET_URL wywołujemy metodą POST z itemId w body
     const resp = await fetch(GET_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ itemId: itemId })
+      body: JSON.stringify({ itemId })
     });
     if (!resp.ok) throw new Error(`Flow GET zwrócił HTTP ${resp.status}`);
     const data = await resp.json();
@@ -341,12 +351,14 @@ window.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('formWrapper').style.display = 'block';
   } catch(err) {
     document.getElementById('loadingScreen').classList.add('hidden');
-    document.getElementById('errorScreen').classList.add('visible');
-    document.getElementById('errorText').innerHTML =
-      `<strong>${err.message}</strong><br><br>` +
-      `Sprawdź czy Flow GET jest poprawnie skonfigurowany i czy URL jest aktualny.`;
+    showError(`<strong>${err.message}</strong><br><br>Sprawdź czy Flow GET jest poprawnie skonfigurowany i czy URL jest aktualny.`);
   }
 });
+
+function showError(msg) {
+  document.getElementById('errorScreen').classList.add('visible');
+  document.getElementById('errorText').innerHTML = msg;
+}
 
 function renderCandidate(d, itemId, refId) {
   const g = (...keys) => {
@@ -357,18 +369,18 @@ function renderCandidate(d, itemId, refId) {
     return '—';
   };
 
-  const name    = g('full_name','Kandydat_Nazwiskolmie','Title');
-  const nat     = g('nationality','Kandydat_Narodowosc');
-  const email   = g('email','Kandydat_Email','Email');
-  const tel     = g('phone_pl','Kandydat_Telefon_PL');
-  const telOth  = g('phone_other','Kandydat_Telefon_zagraniczny');
-  const exp     = g('experience','Doswiadczenie_CE');
-  const trailer = g('trailers','Typ_Naczepy');
-  const lic     = g('license_type','Prawo_Jazdy');
-  const langs   = g('languages','Jezyki');
-  const res     = g('residence_doc','Dokument_Pobyt');
-  const ref     = g('referenceId','Title') || refId;
-  const date    = g('submittedAt','Data_Zlozenia','Created');
+  const name   = g('full_name','Kandydat_Nazwiskolmie','Title');
+  const nat    = g('nationality','Kandydat_Narodowosc');
+  const email  = g('email','Kandydat_Email','Email');
+  const tel    = g('phone_pl','Kandydat_Telefon_PL');
+  const telOth = g('phone_other','Kandydat_Telefon_zagraniczny');
+  const exp    = g('experience','Doswiadczenie_CE');
+  const trailer= g('trailers','Typ_Naczepy');
+  const lic    = g('license_type','Prawo_Jazdy');
+  const langs  = g('languages','Jezyki');
+  const res    = g('residence_doc','Dokument_Pobyt');
+  const ref    = g('referenceId','Title') || refId;
+  const date   = g('submittedAt','Data_Zlozenia','Created');
 
   document.getElementById('c_name').textContent = name;
   document.getElementById('c_ref').textContent  = 'Nr ref: ' + ref;
@@ -394,28 +406,17 @@ function renderCandidate(d, itemId, refId) {
   `;
 }
 
-function showDemo() {
-  document.getElementById('loadingScreen').classList.add('hidden');
-  document.getElementById('errorScreen').classList.add('visible');
-  document.getElementById('errorText').innerHTML =
-    `Brak parametru <code>itemId</code> w URL.<br><br>` +
-    `Otwórz formularz przez link z emaila HR który zawiera<br>` +
-    `<code>?itemId=X&ref=HT-CE-...</code>`;
-}
-
 document.getElementById('hrForm').addEventListener('submit', async function(e) {
   e.preventDefault();
 
-  const statusEl  = document.querySelector('[name="status_rekrutacji"]:checked');
-  const dateVal   = document.getElementById('interviewDate').value;
-  const decyzjaEl = document.querySelector('[name="decyzja"]:checked');
-  let ok = true;
-
+  // Jedyne wymagane pole to status
+  const statusEl = document.querySelector('[name="status_rekrutacji"]:checked');
   document.getElementById('fg_status').classList.toggle('has-error', !statusEl);
-  document.getElementById('fg_interview_date').classList.toggle('has-error', !dateVal);
-  document.getElementById('decyzja_error').style.display = decyzjaEl ? 'none' : 'block';
-  if (!statusEl || !dateVal || !decyzjaEl) ok = false;
-  if (!ok) { showToast('error','❌','Uzupełnij formularz','Wymagane pola są puste.'); return; }
+  if (!statusEl) {
+    showToast('error','❌','Uzupełnij formularz','Wybierz status rekrutacji.');
+    document.getElementById('fg_status').scrollIntoView({behavior:'smooth',block:'center'});
+    return;
+  }
 
   const btn = document.getElementById('submitBtn');
   btn.disabled = true; btn.classList.add('loading');
@@ -423,12 +424,14 @@ document.getElementById('hrForm').addEventListener('submit', async function(e) {
   document.getElementById('uploadProgress').scrollIntoView({behavior:'smooth',block:'start'});
 
   const f = this;
+  const decyzjaEl = document.querySelector('[name="decyzja"]:checked');
+
   const payload = {
     itemId:            document.getElementById('h_itemId').value,
     referenceId:       document.getElementById('h_refId').value,
     candidateName:     document.getElementById('h_name').value,
     status_rekrutacji: statusEl.value,
-    data_rozmowy:      dateVal,
+    data_rozmowy:      f.data_rozmowy?.value || '',
     forma_rozmowy:     f.forma_rozmowy?.value || '',
     prowadzacy:        f.prowadzacy?.value || '',
     ocena_gwiazdki:    f.ocena_gwiazdki?.value || '0',
@@ -439,7 +442,7 @@ document.getElementById('hrForm').addEventListener('submit', async function(e) {
     uwagi_hr:          f.uwagi_hr?.value || '',
     warunki:           f.warunki?.value || '',
     kolejne_kroki:     f.kolejne_kroki?.value || '',
-    decyzja:           decyzjaEl.value,
+    decyzja:           decyzjaEl?.value || '',
     powod_odrzucenia:  f.powod_odrzucenia?.value || '',
     data_rozpoczecia:  f.data_rozpoczecia?.value || '',
     hr_submitted_at:   new Date().toISOString()
@@ -455,8 +458,6 @@ document.getElementById('hrForm').addEventListener('submit', async function(e) {
     setStep('g','done','Połączono ✓');
 
     setStep('s','running','Zapisywanie oceny...');
-
-    // POPRAWKA: POST_URL wysyła pełny payload
     const resp = await fetch(POST_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -468,8 +469,9 @@ document.getElementById('hrForm').addEventListener('submit', async function(e) {
     setTimeout(() => {
       document.getElementById('formWrapper').style.display = 'none';
       document.getElementById('successScreen').classList.add('visible');
+      const dec = payload.decyzja ? ` · Decyzja: ${payload.decyzja}` : ' · Decyzja: do uzupełnienia';
       document.getElementById('successDetail').textContent =
-        `Kandydat: ${payload.candidateName} · Decyzja: ${payload.decyzja} · Status: ${payload.status_rekrutacji}`;
+        `Kandydat: ${payload.candidateName} · Status: ${payload.status_rekrutacji}${dec}`;
       window.scrollTo({top:0,behavior:'smooth'});
     }, 700);
 
@@ -490,21 +492,23 @@ function pickRadio(lbl) {
   lbl.classList.add('checked'); inp.checked = true;
   lbl.closest('.field-group')?.classList.remove('has-error');
 }
+
 function pickDecision(lbl, val) {
   document.querySelectorAll('.decision-btn').forEach(b => b.classList.remove('selected'));
   lbl.classList.add('selected'); lbl.querySelector('input').checked = true;
-  document.getElementById('decyzja_error').style.display = 'none';
   document.getElementById('rejectReasonBlock').style.display = val === 'Odrzucony' ? 'block' : 'none';
   document.getElementById('acceptBlock').style.display       = val === 'Przyjęty'  ? 'block' : 'none';
   const badge = document.getElementById('c_status_badge');
-  badge.className  = 'status-pill ' + (val === 'Przyjęty' ? 'status-accepted' : 'status-rejected');
+  badge.className   = 'status-pill ' + (val === 'Przyjęty' ? 'status-accepted' : 'status-rejected');
   badge.textContent = val;
 }
+
 function setRating(v) {
   document.getElementById('ratingVal').value = v;
   document.getElementById('ratingLabel').textContent = `${v}/5 – ${ratingLabels[v]}`;
   document.querySelectorAll('.star').forEach((s,i) => s.classList.toggle('active', i < v));
 }
+
 function setStep(id, state, label) {
   const icon = document.getElementById('icon_'+id), lbl = document.getElementById('label_'+id);
   if (!icon||!lbl) return;
@@ -512,8 +516,9 @@ function setStep(id, state, label) {
   icon.textContent = {running:'⟳',done:'✓',fail:'✗'}[state]||id;
   lbl.textContent  = label; lbl.className = 'step-label '+state;
 }
+
 let toastTimer;
-function showToast(type,icon,title,msg) {
+function showToast(type, icon, title, msg) {
   const t = document.getElementById('toast');
   document.getElementById('toastIcon').textContent  = icon;
   document.getElementById('toastTitle').textContent = title;
@@ -522,6 +527,7 @@ function showToast(type,icon,title,msg) {
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => t.classList.remove('show'), 7000);
 }
+
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 </script>
 </body>
